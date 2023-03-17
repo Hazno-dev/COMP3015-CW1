@@ -32,20 +32,18 @@ void SceneBasic_Uniform::initScene()
     glEnable(GL_DEPTH_TEST);
     model = mat4(1.f);
     model = glm::rotate(model, glm::radians(-35.0f), vec3(1.0f, 0.0f, 0.0f));
+
     view = glm::lookAt(vec3(0.f, 0.f, 2.f), vec3(0.f, 0.f, 0.f), vec3(0.f, 1.f, 0.f));
     projection = mat4(1.f);
 
-    prog.setUniform("Kd", glm::vec3(1.f));
-    prog.setUniform("Ld", glm::vec3(1.f));
-    prog.setUniform("LightPosition", view * glm::vec4(5.f, 5.f, 2.f, 1.f));
-}
-
-void SceneBasic_Uniform::setMatrices()
-{
-    glm::mat4 mv = view * model;
-    prog.setUniform("ModelViewMatrix", mv);
-    prog.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
-    prog.setUniform("MVP", projection * mv);
+    prog.setUniform("Material.Kd", 0.2f, 0.55f, 0.9f);
+    prog.setUniform("Material.Ka", 0.2f, 0.55f, 0.9f);
+    prog.setUniform("Material.Ks", 0.8f, 0.8f, 0.8f);
+    prog.setUniform("Material.Shininess", 100.f);
+    prog.setUniform("Light.Ld", 1.0f, 1.0f, 1.0f);
+    prog.setUniform("Light.La", 0.4f, 0.4f, 0.4f);
+    prog.setUniform("Light.Ls", 1.0f, 1.0f, 1.0f);
+    prog.setUniform("Light.Position", view * glm::vec4(5.f, 5.f, 2.f, 1.f));
 }
 
 void SceneBasic_Uniform::compile()
@@ -82,4 +80,12 @@ void SceneBasic_Uniform::resize(int w, int h)
     width = w;
     height = h;
     projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.f);
+}
+
+void SceneBasic_Uniform::setMatrices()
+{
+    glm::mat4 mv = view * model;
+    prog.setUniform("ModelViewMatrix", mv);
+    prog.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
+    prog.setUniform("MVP", projection * mv);
 }
