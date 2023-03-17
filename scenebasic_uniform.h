@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "helper/torus.h"
+#include "helper/teapot.h"
 
 class SceneBasic_Uniform : public Scene
 {
@@ -21,7 +22,8 @@ public:
 
 private:
     GLSLProgram prog;
-    Torus TorusMesh;
+    //Torus TorusMesh;
+    Teapot TeapotMesh;
     glm::mat4 rotationMatrix;
 
     void setMatrices();
