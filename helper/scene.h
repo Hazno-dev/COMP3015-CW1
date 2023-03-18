@@ -1,11 +1,19 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 class Scene
 {
 protected:
 	glm::mat4 model, view, projection;
+
+    //Camera Movement
+    glm::vec3 cameraPos, cameraFront;
+    float cameraSpeed, mouseSensitivity;
+    double lastX, lastY;
+    float yaw, pitch;
 
 public:
     int width;
@@ -39,7 +47,19 @@ public:
       Called when screen is resized
       */
     virtual void resize(int, int) = 0;
-    
+
+    /**
+      Setup camera movement variables. 
+      Call from constructor.
+    */
+    virtual void setupCamera() = 0;
+
+    /**
+      Update camera movement variables based on input.
+      Call in scenerunner with window passed in.
+    */
+    virtual void updateCamera(GLFWwindow* window) = 0;
+
     void animate( bool value ) { m_animate = value; }
     bool animating() { return m_animate; }
     
