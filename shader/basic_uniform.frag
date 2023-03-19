@@ -26,6 +26,12 @@ uniform struct SpotLightInfo {
     float Cutoff;
 } Spotlight;
 
+uniform struct FogInfo {
+float MaxDist; //max distance
+float MinDist; //min distance
+vec3 Colour; //colour of the fog
+} Fog;
+
 uniform struct MaterialInfo{
     vec3 Ka; //Amb
     vec3 Kd; //Diff
@@ -37,7 +43,7 @@ uniform struct MaterialInfo{
 //Consts
 //
 
-const bool ToonShading = true;
+const bool ToonShading = false;
 const bool SpecToonShading = false;
 const int level = 5;
 const float scaleFactor = 1.0/level;
@@ -49,6 +55,7 @@ const float scaleFactor = 1.0/level;
 vec3 Phong(int light, vec3 NormalCam, vec4 PositionCam);
 vec3 BlinnPhong(int light, vec3 NormalCam, vec4 PositionCam);
 vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam);
+float CalcFogFactor(vec4 PositionCam);
 
 //
 //Main
@@ -56,9 +63,17 @@ vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam);
 
 void main() {
 
-    vec3 Colour = vec3(0.0);
-    for (int i = 0; i <3; i++) Colour += BlinnPhong(i, Normal, Position);
-    Colour += SpotBlinnPhong(Normal, Position);
+    //Calculate lighting nased on 3 point-lights (or directional depending on W component)
+    //+ 1 spotlight using the Blinn-Phong model
+    vec3 shadeColour = vec3(0.0);
+    for (int i = 0; i <3; i++) shadeColour += BlinnPhong(i, Normal, Position);
+    shadeColour += SpotBlinnPhong(Normal, Position);
+
+    //Calculate fog factor 
+    float fogFactor = CalcFogFactor(Position);
+
+    //assign a colour based on the fogFactor using mix 
+    vec3 Colour = mix(Fog.Colour, shadeColour, fogFactor);
 
     FragColor = vec4(Colour, 1.0);
 }
@@ -181,4 +196,19 @@ vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam){
 
     // Return the final shading color (ambient + diffuse + specular)
     return ambient + diffuse + spec;
+}
+
+// CalcFogFactor - Calculate fog based on distance to the camera
+// Returns fog-factor, a value between 0 and 1 (0 being no fog, 1 being 100%)
+//
+float CalcFogFactor(vec4 PositionCam){
+
+    // Calculate the abs (positive) distance between the camera and the fragment 
+    float dist = abs(PositionCam.z);
+
+    // Fog factor is calculated as max distance / distance 
+    // divided by max distance / min distance
+    float fogFactor = (Fog.MaxDist - dist) / (Fog.MaxDist - Fog.MinDist);
+
+    return clamp(fogFactor, 0.0, 1.0);
 }

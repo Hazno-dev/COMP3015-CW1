@@ -74,6 +74,11 @@ void SceneBasic_Uniform::initScene()
     prog.setUniform("Spotlight.Exponent", 50.f);
     prog.setUniform("Spotlight.Cutoff", glm::radians(15.f));
 
+    prog.setUniform("Fog.MaxDist", 30.0f);
+    prog.setUniform("Fog.MinDist", 10.0f);
+    prog.setUniform("Fog.Colour", vec3(0.5f, 0.5f, 0.5f));
+
+
     //prog.setUniform("Material.Kd", 0.1f, 0.1f, 0.1f);
     //prog.setUniform("Material.Ka", 0.9f, 0.9f, 0.9f);
     //prog.setUniform("Material.Ks", 0.1f, 0.1f, 0.1f);
