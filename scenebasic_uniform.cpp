@@ -21,7 +21,7 @@ using glm::mat3;
 using glm::mat4;
 
 //SceneBasic_Uniform::SceneBasic_Uniform() : TorusMesh(0.7f, 0.3f, 50, 50) {}
-SceneBasic_Uniform::SceneBasic_Uniform() : plane(50.0f, 50.0f, 1, 1)
+SceneBasic_Uniform::SceneBasic_Uniform() : plane(50.0f, 50.0f, 1, 1), skybox(350.0f)
 {
     mesh = ObjMesh::load("media/Planet.obj", true, true);
 }
@@ -82,6 +82,7 @@ void SceneBasic_Uniform::initScene()
     PlaneTex =
         Texture::loadTexture("media/PlaneTextures/PlaneTex.png");
 
+    GLuint SkyboxTex = Texture::loadHdrCubeMap("media/Skybox/space");
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, Planet1BCTex);
@@ -108,6 +109,9 @@ void SceneBasic_Uniform::compile()
         Alphaprog.compileShader("shader/basic_alpha.vert");
         Alphaprog.compileShader("shader/basic_alpha.frag");
         Alphaprog.link();
+        Skyboxprog.compileShader("shader/skybox.vert");
+        Skyboxprog.compileShader("shader/skybox.frag");
+        Skyboxprog.link();
 		prog.compileShader("shader/basic_uniform.vert");
 		prog.compileShader("shader/basic_uniform.frag");
 		prog.link();
@@ -120,6 +124,13 @@ void SceneBasic_Uniform::compile()
 
 void SceneBasic_Uniform::update( float t )
 {
+    //float deltaT = t - tPrev;
+    //if (tPrev == 0.0f)
+    //    deltaT = 0.0f;
+    //tPrev = t;
+    //angle += rotSpeed * deltaT;
+    //if (angle > glm::two_pi<float>())
+    //    angle -= glm::two_pi<float>();
 
 }
 
@@ -148,6 +159,11 @@ void SceneBasic_Uniform::render()
 
     plane.render();
 
+    Skyboxprog.use();
+    model = mat4(1.0f);
+    setSkyboxMatrices();
+    skybox.render();
+
     
 }
 
@@ -156,7 +172,7 @@ void SceneBasic_Uniform::resize(int w, int h)
     glViewport(0, 0, w, h);
     width = w;
     height = h;
-    projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.f);
+    projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 500.f);
 }
 
 void SceneBasic_Uniform::setMatrices()
@@ -177,6 +193,12 @@ void SceneBasic_Uniform::setAlphaMatrices()
     Alphaprog.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
     Alphaprog.setUniform("MVP", projection * mv);
     Alphaprog.setUniform("ProjectionMatrix", projection);
+}
+
+void SceneBasic_Uniform::setSkyboxMatrices()
+{
+    glm::mat4 mv = view * model;
+    Skyboxprog.setUniform("MVP", projection * mv);
 }
 
 void SceneBasic_Uniform::setLightUniforms()

@@ -11,6 +11,7 @@
 #include "helper/plane.h"
 #include "helper/cube.h"
 #include "helper/objmesh.h"
+#include "helper/skybox.h"
 
 class SceneBasic_Uniform : public Scene
 {
@@ -27,6 +28,7 @@ public:
 private:
     GLSLProgram prog;
     GLSLProgram Alphaprog;
+    GLSLProgram Skyboxprog;
     //Torus TorusMesh;
     //Teapot TeapotMesh;
     Plane plane; //plane surface
@@ -39,10 +41,14 @@ private:
         Planet2BCTex, Planet2NMTex,
         PlaneTex, PlaneAlpha,
         CrystalBCTex, CrystalNMTex,
-        CrystalBlendBCTex, CrystalBlendAlpha;
+        CrystalBlendBCTex, CrystalBlendAlpha,
+        SkyboxTex;
+
+    SkyBox skybox;
 
     void setMatrices();
     void setAlphaMatrices();
+    void setSkyboxMatrices();
     void setLightUniforms();
     void compile();
 
