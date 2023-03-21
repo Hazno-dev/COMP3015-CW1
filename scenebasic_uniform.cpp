@@ -23,7 +23,7 @@ using glm::mat4;
 //SceneBasic_Uniform::SceneBasic_Uniform() : TorusMesh(0.7f, 0.3f, 50, 50) {}
 SceneBasic_Uniform::SceneBasic_Uniform() : plane(50.0f, 50.0f, 1, 1)
 {
-    mesh = ObjMesh::load("media/Planet.obj", true);
+    mesh = ObjMesh::load("media/Planet.obj", true, true);
 }
 
 void SceneBasic_Uniform::initScene()
@@ -74,15 +74,20 @@ void SceneBasic_Uniform::initScene()
     prog.setUniform("Fog.MinDist", 10.0f);
     prog.setUniform("Fog.Colour", vec3(0.5f, 0.5f, 0.5f));
 
-    GLuint tex1 =
-        Texture::loadTexture("media/texture/brick1.jpg");
-    GLuint tex2 =
-        Texture::loadTexture("media/texture/moss.png");
+    Planet1BCTex =
+        Texture::loadTexture("media/PlanetTextures/PlanetLower_1001_BaseColor.png");
+    Planet1NMTex =
+        Texture::loadTexture("media/PlanetTextures/PlanetLower_1001_Normal.png");
+
+    PlaneTex =
+        Texture::loadTexture("media/PlaneTextures/PlaneTex.png");
+
+
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex1);
+    glBindTexture(GL_TEXTURE_2D, Planet1BCTex);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, tex2);
+    glBindTexture(GL_TEXTURE_2D, Planet1NMTex);
 }
 
 void SceneBasic_Uniform::setupCamera()
@@ -125,7 +130,7 @@ void SceneBasic_Uniform::render()
 
     prog.use();
     prog.setUniform("Material.Kd", 1.0f, 1.0f, 1.0f);
-    prog.setUniform("Material.Ks", 0.05f, 0.05f, 0.05f);
+    prog.setUniform("Material.Ks", 1.05f, 1.05f, 1.05f);
     prog.setUniform("Material.Ka", 0.5f, 0.5f, 0.5f);
     prog.setUniform("Material.Shininess", 180.0f);
     model = mat4(1.0f);

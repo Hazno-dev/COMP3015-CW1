@@ -1,13 +1,21 @@
 #version 460
 
-layout (binding = 0) uniform sampler2D Tex1;
-layout (binding = 1) uniform sampler2D Tex2;
+layout (binding = 0) uniform sampler2D BaseColourTex;
+layout (binding = 1) uniform sampler2D NormalMapTex;
 
 layout (location = 0) out vec4 FragColor;
 
+//in vec4 Position;
+//in vec3 Normal;
+//in vec2 TexCoord;
+//in vec3 LightDir;
+//in vec3 ViewDir;
+
 in vec4 Position;
-in vec3 Normal;
 in vec2 TexCoord;
+in vec3 LightsDir[3];
+in vec3 SpotlightDir;
+in vec3 ViewDir;
 
 //
 //Uniforms
@@ -58,9 +66,9 @@ const float scaleFactor = 1.0/level;
 //Functions
 //
 
-vec3 Phong(int light, vec3 NormalCam, vec4 PositionCam);
-vec3 BlinnPhong(int light, vec3 NormalCam, vec4 PositionCam, vec3 texColour);
-vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam, vec3 texColour);
+vec3 Phong(int light, vec3 NormalCam);
+vec3 BlinnPhong(int light, vec3 norm, vec3 texColour);
+vec3 SpotBlinnPhong(vec3 norm, vec3 texColour);
 float CalcFogFactor(vec4 PositionCam);
 
 //
@@ -70,16 +78,20 @@ float CalcFogFactor(vec4 PositionCam);
 void main() {
 
     //Multiplying texture inputs
-    vec4 brick = texture(Tex1, TexCoord);
-    vec4 moss = texture(Tex2, TexCoord);
-    vec3 texColour = mix(brick.rgb, moss.rgb, moss.a);
+    //vec4 brick = texture(Tex1, TexCoord);
+    //vec4 moss = texture(Tex2, TexCoord);
+    //vec3 texColour = mix(brick.rgb, moss.rgb, moss.a);
+
+    vec3 baseColour = texture(BaseColourTex, TexCoord).rgb;
+    vec3 norm = texture(NormalMapTex, TexCoord).xyz;
+    norm.xy = 2.0 * norm.xy - 1.0;
 
     //LIGHTING CALCULATIONS
     //Calculate lighting nased on 3 point-lights (or directional depending on W component)
     //+ 1 spotlight using the Blinn-Phong model
     vec3 shadeColour = vec3(0.0);
-    for (int i = 0; i <3; i++) shadeColour += BlinnPhong(i, Normal, Position, texColour);
-    shadeColour += SpotBlinnPhong(Normal, Position, texColour);
+    for (int i = 0; i <3; i++) shadeColour += BlinnPhong(i, normalize(norm), baseColour);
+    shadeColour += SpotBlinnPhong(normalize(norm), baseColour);
 
     vec3 Colour = vec3(0.0);
 
@@ -97,14 +109,15 @@ void main() {
 // This results in slightly different visual appearance but with lower computational cost
 // For a directional light simply set the w component of a given light to 0.0 
 //
-vec3 BlinnPhong(int light, vec3 NormalCam, vec4 PositionCam, vec3 texColour){
+vec3 BlinnPhong(int light, vec3 norm, vec3 texColour){
 
     // Calculate ambient lighting component
     vec3 ambient = Lights[light].La * Material.Ka * texColour;
 
     // Calculate and normalize light direction vector
-    vec3 lightDir = normalize(vec3(Lights[light].Position - (PositionCam * Lights[light].Position.w)));
-    float lightDirDot = max(dot(lightDir, NormalCam), 0.0);
+    vec3 lightDir = normalize(LightsDir[light]);
+    float lightDirDot = max(dot(lightDir, norm), 0.0);
+
 
     // Implement the diffuse shading calculation based on ToonShading being true/false
     vec3 diffuse = vec3(0.0);
@@ -115,9 +128,9 @@ vec3 BlinnPhong(int light, vec3 NormalCam, vec4 PositionCam, vec3 texColour){
     // Initialize specular component
     vec3 spec = vec3(0.0);
     if (lightDirDot > 0.0){
-        vec3 v = normalize(-PositionCam.xyz);
+        vec3 v = normalize(ViewDir);
         vec3 h = normalize(lightDir + v); // Calculate the halfway vector
-        float specIntensity = pow(max(dot(h, NormalCam), 0.0), Material.Shininess); // Calculate the specular intensity using halfway vector
+        float specIntensity = pow(max(dot(h, norm), 0.0), Material.Shininess); // Calculate the specular intensity using halfway vector
 
         // Apply ToonShading to the specular component
         if (bSpecToonShadingOn) specIntensity = floor(specIntensity * level) * scaleFactor;
@@ -131,7 +144,7 @@ vec3 BlinnPhong(int light, vec3 NormalCam, vec4 PositionCam, vec3 texColour){
 
 // Adapted Blinn-Phong shading for Spotlight
 //
-vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam, vec3 texColour){
+vec3 SpotBlinnPhong(vec3 norm, vec3 texColour){
 
     // Calculate ambient lighting component and initialize diffuse and specular components
     vec3 ambient = Spotlight.La * Material.Ka * texColour;
@@ -139,7 +152,7 @@ vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam, vec3 texColour){
     vec3 spec = vec3(0.0);
 
     // Calculate and normalize light direction vector
-    vec3 lightDir = normalize(vec3(Spotlight.Position - PositionCam.xyz));
+    vec3 lightDir = normalize(SpotlightDir);
     float cosAng = dot(-lightDir, normalize(Spotlight.Direction));
     float angle = acos(cosAng);
     float spotScale = 0.0;
@@ -150,7 +163,7 @@ vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam, vec3 texColour){
         spotScale = pow(cosAng, Spotlight.Exponent);
 
         // Calculate the diffuse shading component + implement toon shading if enabled
-        float lightDirDot = max(dot(lightDir, NormalCam), 0.0);
+        float lightDirDot = max(dot(lightDir, norm), 0.0);
 
         if (bToonShadingOn) diffuse = Spotlight.Ld * Material.Kd * (floor((lightDirDot * spotScale) * level) * scaleFactor) * texColour;
         else diffuse = Spotlight.Ld * Material.Kd * lightDirDot * spotScale * texColour;
@@ -158,9 +171,9 @@ vec3 SpotBlinnPhong(vec3 NormalCam, vec4 PositionCam, vec3 texColour){
 
         // Calculate the specular shading component if the point is lit
         if (lightDirDot > 0.0){
-            vec3 v = normalize(-PositionCam.xyz);
+            vec3 v = normalize(ViewDir);
             vec3 h = normalize(lightDir + v); // Calculate the halfway vector
-            float specIntensity = pow(max(dot(h, NormalCam), 0.0), Material.Shininess); // Calculate the specular intensity
+            float specIntensity = pow(max(dot(h, norm), 0.0), Material.Shininess); // Calculate the specular intensity
 
             // Apply ToonShading to the specular component
             if (bSpecToonShadingOn) specIntensity = floor(specIntensity * level) * scaleFactor;
