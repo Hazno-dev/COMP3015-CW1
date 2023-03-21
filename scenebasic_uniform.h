@@ -9,6 +9,7 @@
 #include "helper/torus.h"
 #include "helper/teapot.h"
 #include "helper/plane.h"
+#include "helper/cube.h"
 #include "helper/objmesh.h"
 
 class SceneBasic_Uniform : public Scene
@@ -25,14 +26,24 @@ public:
 
 private:
     GLSLProgram prog;
+    GLSLProgram Alphaprog;
     //Torus TorusMesh;
     //Teapot TeapotMesh;
     Plane plane; //plane surface
+    //Cube cube;
     std::unique_ptr<ObjMesh> mesh; //pig mesh
 
     glm::mat4 rotationMatrix;
 
+    GLuint Planet1BCTex, Planet1NMTex,
+        Planet2BCTex, Planet2NMTex,
+        PlaneTex, PlaneAlpha,
+        CrystalBCTex, CrystalNMTex,
+        CrystalBlendBCTex, CrystalBlendAlpha;
+
     void setMatrices();
+    void setAlphaMatrices();
+    void setLightUniforms();
     void compile();
 
 };

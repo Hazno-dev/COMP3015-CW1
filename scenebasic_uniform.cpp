@@ -12,6 +12,7 @@ using std::endl;
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "helper/glutils.h"
+#include "helper/texture.h"
 
 
 using glm::vec3;
@@ -22,8 +23,7 @@ using glm::mat4;
 //SceneBasic_Uniform::SceneBasic_Uniform() : TorusMesh(0.7f, 0.3f, 50, 50) {}
 SceneBasic_Uniform::SceneBasic_Uniform() : plane(50.0f, 50.0f, 1, 1)
 {
-    mesh = ObjMesh::load("media/pig_triangulated.obj",
-        true);
+    mesh = ObjMesh::load("media/Planet.obj", true);
 }
 
 void SceneBasic_Uniform::initScene()
@@ -38,10 +38,6 @@ void SceneBasic_Uniform::initScene()
     
     setupCamera();
 
-
-    model = mat4(1.f);
-    model = glm::rotate(model, glm::radians(-35.0f), vec3(1.0f, 0.0f, 0.0f));
-
     view = glm::lookAt(vec3(0.f, 0.f, 6.f), vec3(0.f, 0.f, 0.f), vec3(0.f, 1.f, 0.f));
     projection = mat4(1.f);
     float x, z;
@@ -53,23 +49,23 @@ void SceneBasic_Uniform::initScene()
         prog.setUniform(name.str().c_str(), view * glm::vec4(x, 1.f, z + 1.f, 1.f));
     }
 
-    prog.setUniform("Lights[0].Ld", vec3(0.0f, 0.0f, 1.8f));
-    prog.setUniform("Lights[1].Ld", vec3(0.0f, 1.8f, 0.0f));
-    prog.setUniform("Lights[2].Ld", vec3(1.8f, 0.0f, 0.0f));
+    prog.setUniform("Lights[0].Ld", vec3(1.0f, 1.0f, 1.0f));
+    prog.setUniform("Lights[1].Ld", vec3(1.0f, 1.0f, 1.0f));
+    prog.setUniform("Lights[2].Ld", vec3(1.0f, 1.0f, 1.0f));
 
     prog.setUniform("Lights[0].La", vec3(0.0f, 0.0f, 0.1f));
     prog.setUniform("Lights[1].La", vec3(0.0f, 0.1f, 0.0f));
     prog.setUniform("Lights[2].La", vec3(0.1f, 0.0f, 0.0f));
 
-    prog.setUniform("Lights[0].Ls", vec3(0.0f, 0.0f, 0.8f));
-    prog.setUniform("Lights[1].Ls", vec3(0.0f, 0.8f, 0.0f));
-    prog.setUniform("Lights[2].Ls", vec3(0.8f, 0.0f, 0.0f));
+    prog.setUniform("Lights[0].Ls", vec3(1.0f, 1.0f, 1.0f));
+    prog.setUniform("Lights[1].Ls", vec3(1.0f, 1.0f, 1.0f));
+    prog.setUniform("Lights[2].Ls", vec3(1.0f, 1.0f, 1.0f));
 
     mat3 normalMatrix = mat3(vec3(view[0]), vec3(view[1]), vec3(view[2]));
     prog.setUniform("Spotlight.Position", normalMatrix * glm::vec3(0.0f, 1.0f, -2.0f));
     prog.setUniform("Spotlight.Direction", normalMatrix * vec3(-glm::vec4(0.0f, 10.0f, 0.0f, 1.0f)));
-    prog.setUniform("Spotlight.Ld", glm::vec3(1.9f));
-    prog.setUniform("Spotlight.Ls", glm::vec3(0.9f));
+    prog.setUniform("Spotlight.Ld", glm::vec3(1.0f));
+    prog.setUniform("Spotlight.Ls", glm::vec3(1.0f));
     prog.setUniform("Spotlight.La", glm::vec3(0.5f));
     prog.setUniform("Spotlight.Exponent", 50.f);
     prog.setUniform("Spotlight.Cutoff", glm::radians(15.f));
@@ -78,22 +74,22 @@ void SceneBasic_Uniform::initScene()
     prog.setUniform("Fog.MinDist", 10.0f);
     prog.setUniform("Fog.Colour", vec3(0.5f, 0.5f, 0.5f));
 
+    GLuint tex1 =
+        Texture::loadTexture("media/texture/brick1.jpg");
+    GLuint tex2 =
+        Texture::loadTexture("media/texture/moss.png");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex1);
 
-    //prog.setUniform("Material.Kd", 0.1f, 0.1f, 0.1f);
-    //prog.setUniform("Material.Ka", 0.9f, 0.9f, 0.9f);
-    //prog.setUniform("Material.Ks", 0.1f, 0.1f, 0.1f);
-    //prog.setUniform("Material.Shininess", 100.f);
-    //prog.setUniform("Light.Ld", 1.0f, 1.0f, 1.0f);
-    //prog.setUniform("Light.La", 0.4f, 0.4f, 0.4f);
-    //prog.setUniform("Light.Ls", 1.0f, 1.0f, 1.0f);
-    //prog.setUniform("Light.Position", view * glm::vec4(5.f, 5.f, 2.f, 1.f));
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, tex2);
 }
 
 void SceneBasic_Uniform::setupCamera()
 {
     cameraPos = vec3(0.0f, 0.0f, 6.0f);
     cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    cameraSpeed = 0.05f;
+    cameraSpeed = 0.01f;
     mouseSensitivity = 0.1f;
     lastX = width / 2;
     lastY = height / 2;
@@ -104,6 +100,9 @@ void SceneBasic_Uniform::setupCamera()
 void SceneBasic_Uniform::compile()
 {
 	try {
+        Alphaprog.compileShader("shader/basic_alpha.vert");
+        Alphaprog.compileShader("shader/basic_alpha.frag");
+        Alphaprog.link();
 		prog.compileShader("shader/basic_uniform.vert");
 		prog.compileShader("shader/basic_uniform.frag");
 		prog.link();
@@ -121,23 +120,27 @@ void SceneBasic_Uniform::update( float t )
 
 void SceneBasic_Uniform::render()
 {
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    prog.setUniform("Material.Kd", 0.4f, 0.4f, 0.4f);
-    prog.setUniform("Material.Ks", 0.9f, 0.9f, 0.9f);
+    prog.use();
+    prog.setUniform("Material.Kd", 1.0f, 1.0f, 1.0f);
+    prog.setUniform("Material.Ks", 0.05f, 0.05f, 0.05f);
     prog.setUniform("Material.Ka", 0.5f, 0.5f, 0.5f);
     prog.setUniform("Material.Shininess", 180.0f);
     model = mat4(1.0f);
     model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
     setMatrices();
+    setLightUniforms();
     mesh->render();
-    prog.setUniform("Material.Kd", 0.1f, 0.1f, 0.1f);
-    prog.setUniform("Material.Ks", 0.9f, 0.9f, 0.9f);
-    prog.setUniform("Material.Ka", 0.1f, 0.1f, 0.1f);
-    prog.setUniform("Material.Shininess", 180.0f);
+
+
+    //Alpha shader pass
+    Alphaprog.use();
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, -0.45f, 0.0f));
-    setMatrices();
+    setAlphaMatrices();
+
     plane.render();
 
     
@@ -159,6 +162,20 @@ void SceneBasic_Uniform::setMatrices()
     prog.setUniform("MVP", projection * mv);
     prog.setUniform("ProjectionMatrix", projection);
 
+
+}
+
+void SceneBasic_Uniform::setAlphaMatrices()
+{
+    glm::mat4 mv = view * model;
+    Alphaprog.setUniform("ModelViewMatrix", mv);
+    Alphaprog.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
+    Alphaprog.setUniform("MVP", projection * mv);
+    Alphaprog.setUniform("ProjectionMatrix", projection);
+}
+
+void SceneBasic_Uniform::setLightUniforms()
+{
     float x, z;
     for (int i = 0; i < 3; i++) {
         std::stringstream name;
