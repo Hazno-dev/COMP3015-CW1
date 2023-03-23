@@ -14,6 +14,7 @@ layout (location = 0) out vec4 FragColor;
 in vec4 Position;
 in vec2 TexCoord;
 in vec3 LightsDir[3];
+in vec3 SpotlightPos;
 in vec3 SpotlightDir;
 in vec3 ViewDir;
 
@@ -57,8 +58,8 @@ uniform struct MaterialInfo{
 
 const bool bFogOn = false;
 
-const bool bToonShadingOn = false;
-const bool bSpecToonShadingOn = false;
+const bool bToonShadingOn = true;
+const bool bSpecToonShadingOn = true;
 const int level = 5;
 const float scaleFactor = 1.0/level;
 
@@ -115,7 +116,7 @@ vec3 BlinnPhong(int light, vec3 norm, vec3 texColour){
     vec3 ambient = Lights[light].La * Material.Ka * texColour;
 
     // Calculate and normalize light direction vector
-    vec3 lightDir = normalize(LightsDir[light]);
+    vec3 lightDir = LightsDir[light];
     float lightDirDot = max(dot(lightDir, norm), 0.0);
 
 
@@ -152,8 +153,8 @@ vec3 SpotBlinnPhong(vec3 norm, vec3 texColour){
     vec3 spec = vec3(0.0);
 
     // Calculate and normalize light direction vector
-    vec3 lightDir = normalize(SpotlightDir);
-    float cosAng = dot(-lightDir, normalize(Spotlight.Direction));
+    vec3 lightDir = normalize(SpotlightPos);
+    float cosAng = dot(-lightDir, normalize(SpotlightDir));
     float angle = acos(cosAng);
     float spotScale = 0.0;
 

@@ -31,14 +31,42 @@ private:
     GLSLProgram Skyboxprog;
     //Torus TorusMesh;
     //Teapot TeapotMesh;
-    Plane plane; //plane surface
-    //Cube cube;
-    std::unique_ptr<ObjMesh> mesh; //pig mesh
 
-    glm::mat4 rotationMatrix;
+    Plane plane; //plane surface
+    std::unique_ptr<ObjMesh> CrystalMesh;
+    std::unique_ptr<ObjMesh> Planet1Mesh;
+    std::unique_ptr<ObjMesh> Planet2Mesh;
+    std::unique_ptr<ObjMesh> MoonMesh;
+    std::unique_ptr<ObjMesh> RingMesh;
+
+    glm::vec3 Planet1Location;
+    glm::vec3 Planet2Location;
+    glm::vec3 moonLocation;
+
+    float Planet1RotationSpeed = 20.f;
+    float Planet2RotationSpeed = 10.f;
+    float moonRotationSpeed = 25.0f;
+    float crystalLevSpeed = 2.0f;
+
+    float Planet1Distance = 12.0f;
+    float Planet2Distance = 26.5f;
+    float moonDistance = 3.0f;
+    float crystalLevAmplitude = 0.2f;
+
+    float Planet1Angle;
+    float Planet2Angle;
+    float moonAngle;
+    float crystalOffset;
+
+    glm::vec4 Light1Pos;
+    glm::vec4 Light2Pos;
+    glm::vec4 Light3Pos;
+    glm::vec3 SpotLightPos;
+    glm::vec3 SpotLightDir;
 
     GLuint Planet1BCTex, Planet1NMTex,
         Planet2BCTex, Planet2NMTex,
+        MoonBCTex, MoonNMTex,
         PlaneTex, PlaneAlpha,
         CrystalBCTex, CrystalNMTex,
         CrystalBlendBCTex, CrystalBlendAlpha,
@@ -50,6 +78,7 @@ private:
     void setAlphaMatrices();
     void setSkyboxMatrices();
     void setLightUniforms();
+    void setTextures(GLuint Tex1, GLuint Tex2);
     void compile();
 
 };

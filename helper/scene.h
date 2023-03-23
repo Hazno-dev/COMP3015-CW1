@@ -60,7 +60,7 @@ public:
     */
     virtual void updateCamera(GLFWwindow* window) = 0;
 
-    void animate( bool value ) { m_animate = value; }
+    void animate(bool value) { m_animate = value; }
     bool animating() { return m_animate; }
     
 protected:

@@ -1,4 +1,2 @@
-﻿  scenebasic_uniform.cpp
-C:\Users\callu\Documents\COMP3015\COMP3015-CW1\scenebasic_uniform.cpp(233,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\callu\Documents\COMP3015\COMP3015-CW1\scenebasic_uniform.cpp(234,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+﻿  main.cpp
   Project_Template.vcxproj -> C:\Users\callu\Documents\COMP3015\COMP3015-CW1\x64\Debug\Project_Template.exe

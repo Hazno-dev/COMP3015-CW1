@@ -9,6 +9,7 @@ out vec4 Position;
 //out vec3 Normal;
 out vec2 TexCoord;
 out vec3 LightsDir[3];
+out vec3 SpotlightPos;
 out vec3 SpotlightDir;
 out vec3 ViewDir;
 
@@ -52,8 +53,19 @@ void main()
 
     vec3 pos = vec3( ModelViewMatrix * vec4(VertexPosition,1.0) );
 
-    for (int i = 0; i < 3; i++) LightsDir[i] = toObjectLocal * (Lights[i].Position.xyz - pos);
-    SpotlightDir = toObjectLocal * (Spotlight.Position - pos);
+    for (int i = 0; i < 3; i++) {
+    vec3 lightVec = (Lights[i].Position.xyz - (pos * Lights[i].Position.w));
+        if (Lights[i].Position.w != 0.0) {
+            lightVec = normalize(lightVec);
+        }
+        LightsDir[i] = toObjectLocal * lightVec;
+    }
+
+
+        
+    
+    SpotlightPos = toObjectLocal * (Spotlight.Position.xyz - pos);
+    SpotlightDir = toObjectLocal * Spotlight.Direction;
 
     ViewDir = toObjectLocal * normalize(-pos);
 
