@@ -65,4 +65,7 @@ public:
     
 protected:
 	bool m_animate;
+
+    float deltaTime = 0.f;
+    float elapsedTime = 0.f;
 };

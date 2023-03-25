@@ -1,15 +1,22 @@
 #version 460
 
+//
+// In/Outs
+//
+
 layout (binding = 0) uniform samplerCube SkyboxTex;
 
-layout (location = 0) out vec4 FragColor;
+layout (location = 0) out vec3 FragColor;
 
 in vec3 Vec;
+
+//
+//Main
+//
 
 void main() {
 
     vec3 texColour = texture(SkyboxTex, normalize(Vec)).rgb;
-    texColour = pow(texColour, vec3(1.0/2.2));
-    FragColor = vec4(texColour, 1.0);
+    FragColor = texColour;
 
 }

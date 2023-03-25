@@ -1,17 +1,24 @@
 #version 460
 
+//
+// In/Outs
+//
+
 layout (location = 0) in vec3 VertexPosition;
 layout (location = 1) in vec3 VertexNormal;
 layout (location = 2) in vec2 VertexTexCoord;
 layout (location = 3) in vec4 VertexTangent;
 
 out vec4 Position;
-//out vec3 Normal;
 out vec2 TexCoord;
 out vec3 LightsDir[3];
 out vec3 SpotlightPos;
 out vec3 SpotlightDir;
 out vec3 ViewDir;
+
+//
+//Uniforms
+//
 
 uniform struct LightInfo {
     vec4 Position;
@@ -35,35 +42,39 @@ uniform mat3 NormalMatrix;
 uniform mat4 MVP;
 uniform mat4 ProjectionMatrix;
 
-void getCamSpaceValues ( out vec3 norm, out vec4 position );
+//
+//Main
+//
 
+// Main: Transforms the normals into tangent space.
+// Calculates the point lights and spotlight position/direction in tangent space.
+// These values are sent to the geometry shader and then to the fragment shader.
 void main()
 {
-    // Convert vertex normal and position to camera space
+    // Convert vertex position to camera space
     Position = (ModelViewMatrix * vec4(VertexPosition,1.0));
-    //getCamSpaceValues(Normal, Position);
 
-    vec3 norm = normalize(NormalMatrix * VertexNormal);
+    // Calculate and normalize the transformed vertex normal
+    vec3 Normal = normalize(NormalMatrix * VertexNormal);
     vec3 tang = normalize(NormalMatrix * vec3(VertexTangent));
 
-    vec3 binormal = normalize(cross(norm,tang)) * VertexTangent.w;
+    // Calculate and normalize the binormal vector
+    vec3 binormal = normalize(cross(Normal,tang)) * VertexTangent.w;
 
-    // Matrix for transformation to tangent space
-    mat3 toObjectLocal = mat3(tang.x, binormal.x, norm.x, tang.y, binormal.y, norm.y, tang.z, binormal.z, norm.z );
+    // Construct the matrix for transformation to tangent space
+    mat3 toObjectLocal = mat3(tang.x, binormal.x, Normal.x, tang.y, binormal.y, Normal.y, tang.z, binormal.z, Normal.z );
 
     vec3 pos = vec3( ModelViewMatrix * vec4(VertexPosition,1.0) );
 
+    // Calculate light directions in tangent space for each light
     for (int i = 0; i < 3; i++) {
-    vec3 lightVec = (Lights[i].Position.xyz - (pos * Lights[i].Position.w));
+        vec3 lightVec = (Lights[i].Position.xyz - (pos * Lights[i].Position.w));
         if (Lights[i].Position.w != 0.0) {
             lightVec = normalize(lightVec);
         }
         LightsDir[i] = toObjectLocal * lightVec;
     }
 
-
-        
-    
     SpotlightPos = toObjectLocal * (Spotlight.Position.xyz - pos);
     SpotlightDir = toObjectLocal * Spotlight.Direction;
 
@@ -72,14 +83,6 @@ void main()
     TexCoord = VertexTexCoord;
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 }
-
-void getCamSpaceValues ( out vec3 norm, out vec4 position )
-{
-    norm = normalize( NormalMatrix * VertexNormal);
-    position = (ModelViewMatrix * vec4(VertexPosition,1.0));
-
-}
-
 
 // ------------------ NOTE ---------------
 //

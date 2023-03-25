@@ -64,7 +64,7 @@ std::unique_ptr<ObjMesh> ObjMesh::load( const char * fileName, bool center, bool
     return mesh;
 }
 
-std::unique_ptr<ObjMesh> ObjMesh::loadWithAdjacency( const char * fileName, bool center ) {
+std::unique_ptr<ObjMesh> ObjMesh::loadWithAdjacency( const char * fileName, bool center, bool genTangents) {
 
     std::unique_ptr<ObjMesh> mesh(new ObjMesh());
 
@@ -73,6 +73,9 @@ std::unique_ptr<ObjMesh> ObjMesh::loadWithAdjacency( const char * fileName, bool
 
     // Generate normals
     meshData.generateNormalsIfNeeded();
+
+    // Generate tangents?
+    if (genTangents) meshData.generateTangents();
 
     // Convert to GL format
     GlMeshData glMesh;

@@ -1,22 +1,22 @@
 #version 460
 
+//
+// In/Outs
+//
+
 layout (binding = 0) uniform sampler2D BaseColourTex;
 layout (binding = 1) uniform sampler2D NormalMapTex;
+layout (binding = 2) uniform sampler2D SecondaryColourTex;
 
-layout (location = 0) out vec4 FragColor;
+layout (location = 0) out vec3 HdrColor;
 
-//in vec4 Position;
-//in vec3 Normal;
-//in vec2 TexCoord;
-//in vec3 LightDir;
-//in vec3 ViewDir;
 
-in vec4 Position;
-in vec2 TexCoord;
-in vec3 LightsDir[3];
-in vec3 SpotlightPos;
-in vec3 SpotlightDir;
-in vec3 ViewDir;
+in vec4 GPosition;
+in vec2 GTexCoord;
+in vec3 GLightsDir[3];
+in vec3 GSpotlightPos;
+in vec3 GSpotlightDir;
+in vec3 GViewDir;
 
 //
 //Uniforms
@@ -52,9 +52,14 @@ uniform struct MaterialInfo{
     float Shininess; //Shininess
 } Material;
 
+uniform vec3 LineColour;
+flat in int GIsEdge;
+
 //
 //Consts
 //
+
+const bool bMultiTexOn = false;
 
 const bool bFogOn = false;
 
@@ -78,13 +83,21 @@ float CalcFogFactor(vec4 PositionCam);
 
 void main() {
 
-    //Multiplying texture inputs
-    //vec4 brick = texture(Tex1, TexCoord);
-    //vec4 moss = texture(Tex2, TexCoord);
-    //vec3 texColour = mix(brick.rgb, moss.rgb, moss.a);
+    if (GIsEdge == 1){
+        HdrColor = LineColour;
+        return;
+    }
 
-    vec3 baseColour = texture(BaseColourTex, TexCoord).rgb;
-    vec3 norm = texture(NormalMapTex, TexCoord).xyz;
+    //TEXTURE BLENDING
+    //Multiplying texture inputs is bMultiTex is true - Uses alpha channel of secondary texture to mix.
+    vec3 baseColour = vec3(0.0);
+    if (bMultiTexOn) {
+        vec4 BC = texture(BaseColourTex, GTexCoord);
+        vec4 SC = texture(SecondaryColourTex, GTexCoord);
+        baseColour = mix(BC.rgb, SC.rgb, SC.a);
+    } else baseColour = texture(BaseColourTex, GTexCoord).rgb;
+
+    vec3 norm = texture(NormalMapTex, GTexCoord).xyz;
     norm.xy = 2.0 * norm.xy - 1.0;
 
     //LIGHTING CALCULATIONS
@@ -98,10 +111,11 @@ void main() {
 
     //FOG CALCULATIONS
     //Calculate fog factor if fog is enabled and assign a colour based on the fogFactor using mix 
-    if (bFogOn) Colour = mix(Fog.Colour, shadeColour, CalcFogFactor(Position));
+    if (bFogOn) Colour = mix(Fog.Colour, shadeColour, CalcFogFactor(GPosition));
     else Colour = shadeColour;
 
-    FragColor = vec4(Colour, 1.0);
+
+    HdrColor = Colour;
 }
 
 // Blinn-Phong - MORE PERFORMANT
@@ -116,7 +130,7 @@ vec3 BlinnPhong(int light, vec3 norm, vec3 texColour){
     vec3 ambient = Lights[light].La * Material.Ka * texColour;
 
     // Calculate and normalize light direction vector
-    vec3 lightDir = LightsDir[light];
+    vec3 lightDir = GLightsDir[light];
     float lightDirDot = max(dot(lightDir, norm), 0.0);
 
 
@@ -129,7 +143,7 @@ vec3 BlinnPhong(int light, vec3 norm, vec3 texColour){
     // Initialize specular component
     vec3 spec = vec3(0.0);
     if (lightDirDot > 0.0){
-        vec3 v = normalize(ViewDir);
+        vec3 v = normalize(GViewDir);
         vec3 h = normalize(lightDir + v); // Calculate the halfway vector
         float specIntensity = pow(max(dot(h, norm), 0.0), Material.Shininess); // Calculate the specular intensity using halfway vector
 
@@ -153,8 +167,8 @@ vec3 SpotBlinnPhong(vec3 norm, vec3 texColour){
     vec3 spec = vec3(0.0);
 
     // Calculate and normalize light direction vector
-    vec3 lightDir = normalize(SpotlightPos);
-    float cosAng = dot(-lightDir, normalize(SpotlightDir));
+    vec3 lightDir = normalize(GSpotlightPos);
+    float cosAng = dot(-lightDir, normalize(GSpotlightDir));
     float angle = acos(cosAng);
     float spotScale = 0.0;
 
@@ -172,7 +186,7 @@ vec3 SpotBlinnPhong(vec3 norm, vec3 texColour){
 
         // Calculate the specular shading component if the point is lit
         if (lightDirDot > 0.0){
-            vec3 v = normalize(ViewDir);
+            vec3 v = normalize(GViewDir);
             vec3 h = normalize(lightDir + v); // Calculate the halfway vector
             float specIntensity = pow(max(dot(h, norm), 0.0), Material.Shininess); // Calculate the specular intensity
 
@@ -201,10 +215,6 @@ float CalcFogFactor(vec4 PositionCam){
 
     return clamp(fogFactor, 0.0, 1.0);
 }
-
-
-
-
 
 
 // ---------- DEPRECATED -------------

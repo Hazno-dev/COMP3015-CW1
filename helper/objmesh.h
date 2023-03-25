@@ -16,7 +16,7 @@ private:
 
 public:
     static std::unique_ptr<ObjMesh> load(const char * fileName, bool center = false, bool genTangents = false);
-    static std::unique_ptr<ObjMesh> loadWithAdjacency(const char * fileName, bool center = false);
+    static std::unique_ptr<ObjMesh> loadWithAdjacency(const char * fileName, bool center = false, bool genTangents = false);
 
     void render() const override;
 

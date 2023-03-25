@@ -163,7 +163,10 @@
   <ItemGroup>
     <None Include="shader\basic_alpha.frag" />
     <None Include="shader\basic_alpha.vert" />
+    <None Include="shader\basic_HDR.frag" />
+    <None Include="shader\basic_HDR.vert" />
     <None Include="shader\basic_uniform.frag" />
+    <None Include="shader\basic_uniform.gs" />
     <None Include="shader\basic_uniform.vert" />
     <None Include="shader\skybox.frag" />
     <None Include="shader\skybox.vert" />
